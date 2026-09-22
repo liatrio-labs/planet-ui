@@ -1,87 +1,65 @@
-# Welcome to React Router!
+# Planet UI
 
-A modern, production-ready template for building full-stack React applications using React Router.
+Build a custom solar system and watch it orbit in real time. Add planets with a
+name, description, distance from the sun, size, and a mix of planetary
+characteristics, then see them rendered in a 3D, physics-driven scene.
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/remix-run/react-router-templates/tree/main/default)
-
-## Features
-
-- 🚀 Server-side rendering
-- ⚡️ Hot Module Replacement (HMR)
-- 📦 Asset bundling and optimization
-- 🔄 Data loading and mutations
-- 🔒 TypeScript by default
-- 🎉 TailwindCSS for styling
-- 📖 [React Router docs](https://reactrouter.com/)
+Everything runs locally in the browser. There is no backend and no network
+access at runtime.
 
 ## Getting Started
 
-### Installation
-
-Install the dependencies:
-
 ```bash
 npm install
-```
-
-### Development
-
-Start the development server with HMR:
-
-```bash
 npm run dev
 ```
 
-Your application will be available at `http://localhost:5173`.
+Open `http://localhost:5173`.
 
-## Building for Production
-
-Create a production build:
+Other scripts:
 
 ```bash
-npm run build
+npm run typecheck   # React Router typegen + tsc
+npm run build       # production build (SPA mode) into ./build
+npm run start       # serve the production build
 ```
 
-## Deployment
+## How It Works
 
-### Docker Deployment
+- **Side pane** lists the sun and every planet you have added. **Add Planet**
+  opens a modal form validated with Zod via React Hook Form.
+- **Characteristics** (rocky, oceans, gas giant, icy, volcanic, desert, toxic,
+  clouded, ringed, glowing) are blended into a material, optional atmosphere,
+  and optional ring system.
+- **Physics**: each planet is a Rapier dynamic rigid body seeded with a
+  circular-orbit velocity. Every physics step applies the sun's gravitational
+  pull (`a = μ / r²`), so orbits emerge from the simulation. Distance is entered
+  in astronomical units (0.1 to 10 AU) and compressed with a square-root scale
+  so inner and outer planets fit on screen.
+- **Camera**: drag to orbit, scroll to zoom.
 
-To build and run using Docker:
+## Tech Stack
 
-```bash
-docker build -t my-app .
+- React 19 + React Router v8 (framework mode, SPA)
+- Tailwind CSS v4 + shadcn/ui
+- Zod + React Hook Form
+- React Three Fiber, Drei, and Rapier
+- Zustand
 
-# Run the container
-docker run -p 3000:3000 my-app
-```
-
-The containerized application can be deployed to any platform that supports Docker, including:
-
-- AWS ECS
-- Google Cloud Run
-- Azure Container Apps
-- Digital Ocean App Platform
-- Fly.io
-- Railway
-
-### DIY Deployment
-
-If you're familiar with deploying Node applications, the built-in app server is production-ready.
-
-Make sure to deploy the output of `npm run build`
+## Project Structure
 
 ```
-├── package.json
-├── package-lock.json (or pnpm-lock.yaml, or bun.lockb)
-├── build/
-│   ├── client/    # Static assets
-│   └── server/    # Server-side code
+src/
+├── root.tsx                # document shell, error boundary
+├── routes.ts               # route config
+├── routes/home.tsx         # index route
+└── modules/
+    ├── app/                # layout and side pane
+    ├── planets/            # planet models, store, form, list
+    │   ├── components/
+    │   ├── lib/            # orbit math, appearance derivation
+    │   ├── models/         # Zod schema + characteristic catalog
+    │   └── store/          # Zustand store
+    ├── solar-system/       # R3F canvas, sun, planet bodies, physics
+    └── shared/             # shadcn ui, env config, shared models/utils
 ```
-
-## Styling
-
-This template comes with [Tailwind CSS](https://tailwindcss.com/) already configured for a simple default starting experience. You can use whatever CSS framework you prefer.
-
----
-
-Built with ❤️ using React Router.
