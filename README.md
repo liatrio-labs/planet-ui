@@ -27,7 +27,7 @@ npm run start       # serve the production build
 ## How It Works
 
 - **Side pane** lists the sun and every planet you have added. **Add Planet**
-  opens a modal form validated with Zod via React Hook Form.
+  opens a modal form built with React Hook Form.
 - **Characteristics** (rocky, oceans, gas giant, icy, volcanic, desert, toxic,
   clouded, ringed, glowing) are blended into a material, optional atmosphere,
   and optional ring system.
@@ -42,7 +42,7 @@ npm run start       # serve the production build
 
 - React 19 + React Router v8 (framework mode, SPA)
 - Tailwind CSS v4 + shadcn/ui
-- Zod + React Hook Form
+- React Hook Form
 - React Three Fiber, Drei, and Rapier
 - Zustand
 
@@ -58,7 +58,7 @@ src/
     ├── planets/            # planet models, store, form, list
     │   ├── components/
     │   ├── lib/            # orbit math, appearance derivation
-    │   ├── models/         # Zod schema + characteristic catalog
+    │   ├── models/         # planet types + characteristic catalog
     │   └── store/          # Zustand store
     ├── solar-system/       # R3F canvas, sun, planet bodies, physics
     └── shared/             # shadcn ui, env config, shared models/utils

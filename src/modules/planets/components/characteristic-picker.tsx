@@ -11,20 +11,17 @@ import {
 type CharacteristicPickerProps = {
   value: PlanetCharacteristic[];
   onChange: (value: PlanetCharacteristic[]) => void;
-  invalid?: boolean;
 };
 
 export const CharacteristicPicker = ({
   value,
   onChange,
-  invalid,
 }: CharacteristicPickerProps) => (
   <ToggleGroup
     type="multiple"
     variant="outline"
     value={value}
     onValueChange={(next) => onChange(next as PlanetCharacteristic[])}
-    aria-invalid={invalid}
     className="flex flex-wrap justify-start gap-2"
   >
     {PLANET_CHARACTERISTICS.map((characteristic) => {
