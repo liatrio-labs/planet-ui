@@ -34,6 +34,10 @@ vi.mock("./space-background", () => ({
   SpaceBackground: () => <group name="space-background" />,
 }));
 
+vi.mock("./camera-focus", () => ({
+  CameraFocus: () => <group name="camera-focus" />,
+}));
+
 vi.mock("./sun", () => ({
   Sun: () => <group name="sun" />,
 }));
@@ -69,7 +73,7 @@ const findNamed = (
 
 describe("SolarSystemScene", () => {
   beforeEach(() => {
-    usePlanetsStore.setState({ planets: [] });
+    usePlanetsStore.setState({ planets: [], focusedBodyId: null });
     physicsProps.mockClear();
     orbitControlsProps.mockClear();
     orbitRingProps.mockClear();
@@ -81,6 +85,7 @@ describe("SolarSystemScene", () => {
     expect(findNamed(renderer, "space-background")).toHaveLength(1);
     expect(findNamed(renderer, "sun")).toHaveLength(1);
     expect(findNamed(renderer, "orbit-controls")).toHaveLength(1);
+    expect(findNamed(renderer, "camera-focus")).toHaveLength(1);
 
     const lights = renderer.scene.findAllByType("AmbientLight");
     expect(lights).toHaveLength(1);

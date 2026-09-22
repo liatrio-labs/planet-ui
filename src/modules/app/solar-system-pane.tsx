@@ -1,9 +1,8 @@
-import { SunIcon } from "lucide-react";
-
 import { AddPlanetDialog } from "~/modules/planets/components/add-planet-dialog";
 import { PlanetList } from "~/modules/planets/components/planet-list";
 import { usePlanetsStore } from "~/modules/planets/store/planets.store";
 import { env } from "~/modules/shared/env.config";
+import { SunListItem } from "./sun-list-item";
 
 export const SolarSystemPane = () => {
   const planetCount = usePlanetsStore((state) => state.planets.length);
@@ -30,15 +29,7 @@ export const SolarSystemPane = () => {
 
       <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
         <section aria-label="Bodies">
-          <div className="mb-2 flex items-center gap-2 rounded-lg border border-line bg-surface-raised/50 p-3">
-            <span className="flex size-6 items-center justify-center rounded-full bg-accent text-accent-ink shadow-[0_0_14px_var(--color-accent)]">
-              <SunIcon className="size-3.5" />
-            </span>
-            <div>
-              <h3 className="text-sm font-medium leading-5">Sun</h3>
-              <p className="text-xs text-ink-muted">Fixed at the center</p>
-            </div>
-          </div>
+          <SunListItem />
           <PlanetList />
         </section>
       </div>

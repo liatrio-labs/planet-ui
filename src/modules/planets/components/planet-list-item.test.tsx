@@ -65,7 +65,7 @@ describe("PlanetListItem", () => {
 
   it("colors the swatch from the derived appearance", () => {
     const { container } = renderItem();
-    const swatch = container.querySelector("li > div > span") as HTMLElement;
+    const swatch = container.querySelector("li button > span") as HTMLElement;
     const expected = derivePlanetAppearance(planet.characteristics).color;
     // jsdom normalises hex to rgb(); compare through a scratch element.
     const probe = document.createElement("div");
@@ -80,5 +80,46 @@ describe("PlanetListItem", () => {
       screen.getByRole("button", { name: "Remove Kepler-442b" }),
     );
     expect(onRemove).toHaveBeenCalledWith("p-1");
+  });
+});
+
+describe("PlanetListItem selection", () => {
+  it("exposes a focus button that reports the planet id when clicked", async () => {
+    const user = userEvent.setup();
+    const onSelect = vi.fn();
+    render(
+      <ul>
+        <PlanetListItem planet={planet} onSelect={onSelect} onRemove={vi.fn()} />
+      </ul>,
+    );
+    const button = screen.getByRole("button", {
+      name: "Focus camera on Kepler-442b",
+    });
+    expect(button).toHaveAttribute("aria-pressed", "false");
+    await user.click(button);
+    expect(onSelect).toHaveBeenCalledWith("p-1");
+  });
+
+  it("marks the focus button pressed when selected", () => {
+    render(
+      <ul>
+        <PlanetListItem planet={planet} isSelected onRemove={vi.fn()} />
+      </ul>,
+    );
+    expect(
+      screen.getByRole("button", { name: "Focus camera on Kepler-442b" }),
+    ).toHaveAttribute("aria-pressed", "true");
+  });
+
+  it("does not trigger selection when the remove button is clicked", async () => {
+    const user = userEvent.setup();
+    const onSelect = vi.fn();
+    render(
+      <ul>
+        <PlanetListItem planet={planet} onSelect={onSelect} onRemove={vi.fn()} />
+      </ul>,
+    );
+    await user.click(screen.getByRole("button", { name: "Remove Kepler-442b" }));
+    expect(onSelect).not.toHaveBeenCalled();
   });
 });

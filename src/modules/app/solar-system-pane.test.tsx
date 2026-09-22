@@ -17,7 +17,7 @@ const makePlanet = (id: string): Planet => ({
 
 describe("SolarSystemPane", () => {
   beforeEach(() => {
-    usePlanetsStore.setState({ planets: [] });
+    usePlanetsStore.setState({ planets: [], focusedBodyId: null });
   });
 
   it("renders the app name, title and the fixed sun entry", () => {

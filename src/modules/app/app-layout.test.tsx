@@ -21,7 +21,7 @@ describe("AppLayout", () => {
 
   it("shows the camera controls hint without intercepting pointer events", () => {
     render(<AppLayout />);
-    expect(screen.getByText("Drag to orbit · scroll to zoom")).toHaveClass(
+    expect(screen.getByText("Click a body to focus · drag to orbit · scroll to zoom")).toHaveClass(
       "pointer-events-none",
     );
   });

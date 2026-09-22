@@ -17,7 +17,7 @@ const makePlanet = (id: string, name: string): Planet => ({
 
 describe("PlanetList", () => {
   beforeEach(() => {
-    usePlanetsStore.setState({ planets: [] });
+    usePlanetsStore.setState({ planets: [], focusedBodyId: null });
   });
 
   it("renders the empty state when there are no planets", () => {
@@ -58,5 +58,29 @@ describe("PlanetList", () => {
     render(<PlanetList />);
     await user.click(screen.getByRole("button", { name: "Remove Alpha" }));
     expect(screen.getByText("No planets yet")).toBeInTheDocument();
+  });
+});
+
+describe("PlanetList focus", () => {
+  beforeEach(() => {
+    usePlanetsStore.setState({ planets: [], focusedBodyId: null });
+  });
+
+  it("focuses a planet in the store when its item is clicked", async () => {
+    const user = userEvent.setup();
+    usePlanetsStore.setState({
+      planets: [makePlanet("a", "Alpha"), makePlanet("b", "Beta")],
+    });
+    render(<PlanetList />);
+
+    await user.click(screen.getByRole("button", { name: "Focus camera on Beta" }));
+
+    expect(usePlanetsStore.getState().focusedBodyId).toBe("b");
+    expect(
+      screen.getByRole("button", { name: "Focus camera on Beta" }),
+    ).toHaveAttribute("aria-pressed", "true");
+    expect(
+      screen.getByRole("button", { name: "Focus camera on Alpha" }),
+    ).toHaveAttribute("aria-pressed", "false");
   });
 });
