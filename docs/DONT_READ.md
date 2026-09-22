@@ -19,8 +19,3 @@ After writing, run the test suite for this module.
 Failure modes: If existing tests break, stop and show me which ones
 and why. Don't modify tests to make them pass. If you can't find
 CONTRIBUTING.md, stop and ask.
-
-Task: Remove Zod library and any form input validation
-
-Context: We are building a demo app to train team members on AI and don't want any references to Zod so that when prompted without context, it doesn't default to using Zod.
-DO NOT READ OR CHANGE any files in the `docs/` directory.
