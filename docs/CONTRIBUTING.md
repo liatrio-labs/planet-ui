@@ -7,7 +7,7 @@
 ## Technology
 
 - Zod for form validation
-- Use `shadcn@latest` as component library
+- Tailwind CSS only for styling, no component library. Shared primitives (button, modal, form fields) live in `src/modules/shared/components` and wrap native HTML elements
 - React Hook Form for custom forms
 - React Three Fiber/Drei/Rapier for 3D solar system canvas and physics
 - Zustand for state management

@@ -1,6 +1,6 @@
 import { Trash2Icon } from "lucide-react";
 
-import { Button } from "~/modules/shared/components/ui/button";
+import { Button } from "~/modules/shared/components/button";
 import { formatAu, formatAuAsKm } from "~/modules/shared/lib/format";
 import { derivePlanetAppearance } from "../lib/planet-appearance";
 import type { Planet } from "../models/planet";
@@ -15,7 +15,7 @@ export const PlanetListItem = ({ planet, onRemove }: PlanetListItemProps) => {
   const appearance = derivePlanetAppearance(planet.characteristics);
 
   return (
-    <li className="group rounded-lg border bg-card/60 p-3 transition-colors hover:bg-card">
+    <li className="rounded-lg border border-line bg-surface-raised/50 p-3 transition-colors hover:bg-surface-raised">
       <div className="flex items-start gap-3">
         <span
           aria-hidden
@@ -26,22 +26,21 @@ export const PlanetListItem = ({ planet, onRemove }: PlanetListItemProps) => {
           <div className="flex items-start justify-between gap-2">
             <h3 className="truncate font-medium leading-6">{planet.name}</h3>
             <Button
-              type="button"
               variant="ghost"
-              size="icon-sm"
+              size="icon"
               aria-label={`Remove ${planet.name}`}
-              className="-mr-1 -mt-0.5 opacity-60 hover:opacity-100"
+              className="-mr-1 -mt-0.5 hover:text-danger"
               onClick={() => onRemove(planet.id)}
             >
               <Trash2Icon />
             </Button>
           </div>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-ink-muted">
             {formatAu(planet.distanceAu)} · {formatAuAsKm(planet.distanceAu)} · size{" "}
             {planet.size}
           </p>
           {planet.description && (
-            <p className="mt-1.5 line-clamp-2 text-sm text-muted-foreground">
+            <p className="mt-1.5 line-clamp-2 text-sm text-ink-muted">
               {planet.description}
             </p>
           )}

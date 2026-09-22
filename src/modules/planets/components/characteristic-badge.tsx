@@ -1,4 +1,3 @@
-import { Badge } from "~/modules/shared/components/ui/badge";
 import {
   planetCharacteristicMeta,
   type PlanetCharacteristic,
@@ -13,13 +12,13 @@ export const CharacteristicBadge = ({
 }: CharacteristicBadgeProps) => {
   const meta = planetCharacteristicMeta[characteristic];
   return (
-    <Badge variant="outline" className="gap-1.5 font-normal">
+    <span className="inline-flex items-center gap-1.5 rounded-full border border-line px-2 py-0.5 text-xs text-ink-muted">
       <span
         aria-hidden
         className="size-2 rounded-full"
         style={{ backgroundColor: meta.swatch }}
       />
       {meta.label}
-    </Badge>
+    </span>
   );
 };

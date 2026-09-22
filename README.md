@@ -41,7 +41,7 @@ npm run start       # serve the production build
 ## Tech Stack
 
 - React 19 + React Router v8 (framework mode, SPA)
-- Tailwind CSS v4 + shadcn/ui
+- Tailwind CSS v4 (no component library; small hand-rolled primitives in `src/modules/shared/components`)
 - React Hook Form
 - React Three Fiber, Drei, and Rapier
 - Zustand
@@ -61,5 +61,5 @@ src/
     │   ├── models/         # planet types + characteristic catalog
     │   └── store/          # Zustand store
     ├── solar-system/       # R3F canvas, sun, planet bodies, physics
-    └── shared/             # shadcn ui, env config, shared models/utils
+    └── shared/             # shared UI primitives, env config, models/utils
 ```
