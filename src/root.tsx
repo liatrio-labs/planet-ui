@@ -11,7 +11,7 @@ import type { Route } from "./+types/root";
 import "./app.css";
 
 export const Layout = ({ children }: { children: React.ReactNode }) => (
-  <html lang="en" className="dark">
+  <html lang="en">
     <head>
       <meta charSet="utf-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -49,7 +49,7 @@ export const ErrorBoundary = ({ error }: Route.ErrorBoundaryProps) => {
   return (
     <main className="pt-16 p-4 container mx-auto">
       <h1 className="text-2xl font-semibold">{message}</h1>
-      <p className="text-muted-foreground">{details}</p>
+      <p className="text-ink-muted">{details}</p>
       {stack && (
         <pre className="w-full p-4 overflow-x-auto text-xs">
           <code>{stack}</code>
@@ -60,7 +60,7 @@ export const ErrorBoundary = ({ error }: Route.ErrorBoundaryProps) => {
 };
 
 export const HydrateFallback = () => (
-  <div className="flex h-screen items-center justify-center bg-background text-sm text-muted-foreground">
+  <div className="flex h-screen items-center justify-center text-sm text-ink-muted">
     Loading solar system…
   </div>
 );

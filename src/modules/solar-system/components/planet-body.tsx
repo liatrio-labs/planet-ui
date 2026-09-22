@@ -4,7 +4,7 @@ import {
   useBeforePhysicsStep,
   type RapierRigidBody,
 } from "@react-three/rapier";
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 
 import {
   circularOrbitSpeed,
@@ -16,6 +16,7 @@ import {
 } from "~/modules/planets/lib/orbit";
 import { derivePlanetAppearance } from "~/modules/planets/lib/planet-appearance";
 import type { Planet } from "~/modules/planets/models/planet";
+import { registerBody } from "../lib/body-registry";
 import { PlanetAtmosphere } from "./planet-atmosphere";
 import { PlanetLabel } from "./planet-label";
 import { PlanetRings } from "./planet-rings";
@@ -63,6 +64,16 @@ export const PlanetBody = ({ planet }: PlanetBodyProps) => {
         appearance: derivePlanetAppearance(planet.characteristics),
       };
     }, [planet]);
+
+  // Expose the live position so the camera can centre on and follow this body.
+  useEffect(
+    () =>
+      registerBody(planet.id, () => {
+        const body = bodyRef.current;
+        return body ? body.translation() : { x: 0, y: 0, z: 0 };
+      }),
+    [planet.id],
+  );
 
   useBeforePhysicsStep(() => {
     const body = bodyRef.current;

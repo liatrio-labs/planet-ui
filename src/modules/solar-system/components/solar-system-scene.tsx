@@ -7,6 +7,7 @@ import {
   sizeToRadius,
 } from "~/modules/planets/lib/orbit";
 import { usePlanetsStore } from "~/modules/planets/store/planets.store";
+import { CameraFocus } from "./camera-focus";
 import { OrbitRing } from "./orbit-ring";
 import { PlanetBody } from "./planet-body";
 import { SpaceBackground } from "./space-background";
@@ -44,6 +45,7 @@ export const SolarSystemScene = () => {
         maxDistance={260}
         maxPolarAngle={Math.PI * 0.85}
       />
+      <CameraFocus />
     </>
   );
 };

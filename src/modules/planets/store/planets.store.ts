@@ -2,11 +2,17 @@ import { create } from "zustand";
 
 import type { Planet, PlanetValues } from "../models/planet";
 
+/** Id used to focus the sun, which is not a planet and lives outside the list. */
+export const SUN_ID = "sun";
+
 type PlanetsState = {
   planets: Planet[];
+  /** The body the camera is centred on: `SUN_ID`, a planet id, or none. */
+  focusedBodyId: string | null;
   addPlanet: (values: PlanetValues) => Planet;
   removePlanet: (id: string) => void;
   clearPlanets: () => void;
+  focusBody: (id: string | null) => void;
 };
 
 const createId = () =>
@@ -16,6 +22,7 @@ const createId = () =>
 
 export const usePlanetsStore = create<PlanetsState>((set) => ({
   planets: [],
+  focusedBodyId: null,
   addPlanet: (values) => {
     const planet: Planet = {
       ...values,
@@ -28,6 +35,8 @@ export const usePlanetsStore = create<PlanetsState>((set) => ({
   removePlanet: (id) =>
     set((state) => ({
       planets: state.planets.filter((planet) => planet.id !== id),
+      focusedBodyId: state.focusedBodyId === id ? null : state.focusedBodyId,
     })),
-  clearPlanets: () => set({ planets: [] }),
+  clearPlanets: () => set({ planets: [], focusedBodyId: null }),
+  focusBody: (id) => set({ focusedBodyId: id }),
 }));

@@ -1,15 +1,8 @@
 import { PlusIcon } from "lucide-react";
 import { useState } from "react";
 
-import { Button } from "~/modules/shared/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "~/modules/shared/components/ui/dialog";
+import { Button } from "~/modules/shared/components/button";
+import { Modal } from "~/modules/shared/components/modal";
 import type { PlanetValues } from "../models/planet";
 import { usePlanetsStore } from "../store/planets.store";
 import { PlanetForm } from "./planet-form";
@@ -24,23 +17,19 @@ export const AddPlanetDialog = () => {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button className="w-full">
-          <PlusIcon />
-          Add Planet
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>Add Planet</DialogTitle>
-          <DialogDescription>
-            Describe a new world. It will start orbiting the sun as soon as you
-            save it.
-          </DialogDescription>
-        </DialogHeader>
+    <>
+      <Button className="w-full" onClick={() => setOpen(true)}>
+        <PlusIcon />
+        Add Planet
+      </Button>
+      <Modal
+        open={open}
+        onClose={() => setOpen(false)}
+        title="Add Planet"
+        description="Describe a new world. It will start orbiting the sun as soon as you save it."
+      >
         <PlanetForm onSubmit={handleSubmit} onCancel={() => setOpen(false)} />
-      </DialogContent>
-    </Dialog>
+      </Modal>
+    </>
   );
 };

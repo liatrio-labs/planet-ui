@@ -1,26 +1,16 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Controller, useForm } from "react-hook-form";
+import { useState, type FormEvent } from "react";
 
-import { Button } from "~/modules/shared/components/ui/button";
+import { Button } from "~/modules/shared/components/button";
 import {
   Field,
-  FieldDescription,
-  FieldError,
-  FieldGroup,
+  FieldHint,
   FieldLabel,
-} from "~/modules/shared/components/ui/field";
-import { Input } from "~/modules/shared/components/ui/input";
-import { Slider } from "~/modules/shared/components/ui/slider";
-import { Textarea } from "~/modules/shared/components/ui/textarea";
+  Input,
+  Textarea,
+} from "~/modules/shared/components/field";
 import { formatAuAsKm } from "~/modules/shared/lib/format";
-import {
-  defaultPlanetFormValues,
-  PLANET_DISTANCE_AU,
-  PLANET_SIZE,
-  planetSchema,
-  type PlanetFormInput,
-  type PlanetValues,
-} from "../models/planet";
+import { PLANET_SIZE, type PlanetValues } from "../models/planet";
+import type { PlanetCharacteristic } from "../models/planet-characteristic";
 import { CharacteristicPicker } from "./characteristic-picker";
 
 type PlanetFormProps = {
@@ -29,151 +19,112 @@ type PlanetFormProps = {
 };
 
 export const PlanetForm = ({ onSubmit, onCancel }: PlanetFormProps) => {
-  const form = useForm<PlanetFormInput, unknown, PlanetValues>({
-    resolver: zodResolver(planetSchema),
-    defaultValues: defaultPlanetFormValues,
-    mode: "onTouched",
-  });
+  // Each input is a plain controlled component: React state holds the value
+  // and the input's onChange writes back to it.
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  // Kept as a string so the number input can start (and be cleared to) blank.
+  const [distanceAu, setDistanceAu] = useState("");
+  const [size, setSize] = useState(4);
+  const [characteristics, setCharacteristics] = useState<
+    PlanetCharacteristic[]
+  >([]);
 
-  const distanceAu = form.watch("distanceAu");
-  const size = form.watch("size") ?? PLANET_SIZE.min;
+  const parsedDistance = Number.parseFloat(distanceAu);
+  const hasDistance = !Number.isNaN(parsedDistance);
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    onSubmit({
+      name,
+      description,
+      distanceAu: parsedDistance,
+      size,
+      characteristics,
+    });
+  };
 
   return (
-    <form
-      onSubmit={form.handleSubmit(onSubmit)}
-      noValidate
-      className="flex flex-col gap-6"
-    >
-      <FieldGroup>
-        <Controller
-          control={form.control}
+    <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+      <Field>
+        <FieldLabel htmlFor="planet-name">Name</FieldLabel>
+        <Input
+          id="planet-name"
           name="name"
-          render={({ field, fieldState }) => (
-            <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor="planet-name">Name</FieldLabel>
-              <Input
-                {...field}
-                id="planet-name"
-                placeholder="Kepler-442b"
-                autoComplete="off"
-                autoFocus
-                aria-invalid={fieldState.invalid}
-              />
-              <FieldError errors={[fieldState.error]} />
-            </Field>
-          )}
+          placeholder="Kepler-442b"
+          autoComplete="off"
+          autoFocus
+          value={name}
+          onChange={(event) => setName(event.target.value)}
         />
+      </Field>
 
-        <Controller
-          control={form.control}
+      <Field>
+        <FieldLabel htmlFor="planet-description">Description</FieldLabel>
+        <Textarea
+          id="planet-description"
           name="description"
-          render={({ field, fieldState }) => (
-            <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor="planet-description">Description</FieldLabel>
-              <Textarea
-                {...field}
-                id="planet-description"
-                placeholder="A tidally locked world with a single vast ocean."
-                rows={3}
-                aria-invalid={fieldState.invalid}
-              />
-              <FieldError errors={[fieldState.error]} />
-            </Field>
-          )}
+          placeholder="A tidally locked world with a single vast ocean."
+          rows={3}
+          value={description}
+          onChange={(event) => setDescription(event.target.value)}
         />
+      </Field>
 
-        <Controller
-          control={form.control}
+      <Field>
+        <FieldLabel htmlFor="planet-distance">Distance from Sun (AU)</FieldLabel>
+        <Input
+          id="planet-distance"
           name="distanceAu"
-          render={({ field, fieldState }) => (
-            <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor="planet-distance">
-                Distance from Sun (AU)
-              </FieldLabel>
-              <Input
-                id="planet-distance"
-                type="number"
-                inputMode="decimal"
-                min={PLANET_DISTANCE_AU.min}
-                max={PLANET_DISTANCE_AU.max}
-                step={PLANET_DISTANCE_AU.step}
-                placeholder="1.0"
-                name={field.name}
-                ref={field.ref}
-                onBlur={field.onBlur}
-                value={field.value ?? ""}
-                onChange={(event) => {
-                  const next = event.target.valueAsNumber;
-                  field.onChange(Number.isNaN(next) ? undefined : next);
-                }}
-                aria-invalid={fieldState.invalid}
-              />
-              <FieldDescription>
-                {typeof distanceAu === "number" && !Number.isNaN(distanceAu)
-                  ? `About ${formatAuAsKm(distanceAu)}.`
-                  : "1 AU is Earth's distance from the sun. Enter 0.1 to 10."}
-              </FieldDescription>
-              <FieldError errors={[fieldState.error]} />
-            </Field>
-          )}
+          type="number"
+          inputMode="decimal"
+          placeholder="1.0"
+          value={distanceAu}
+          onChange={(event) => setDistanceAu(event.target.value)}
         />
+        <FieldHint>
+          {hasDistance
+            ? `About ${formatAuAsKm(parsedDistance)}.`
+            : "1 AU is Earth's distance from the sun. Enter 0.1 to 10."}
+        </FieldHint>
+      </Field>
 
-        <Controller
-          control={form.control}
+      <Field>
+        <div className="flex items-center justify-between">
+          <FieldLabel htmlFor="planet-size">Size</FieldLabel>
+          <span className="text-sm tabular-nums text-ink-muted">
+            {size} / {PLANET_SIZE.max}
+          </span>
+        </div>
+        <input
+          id="planet-size"
           name="size"
-          render={({ field, fieldState }) => (
-            <Field data-invalid={fieldState.invalid}>
-              <div className="flex items-center justify-between">
-                <FieldLabel htmlFor="planet-size">Size</FieldLabel>
-                <span className="text-sm tabular-nums text-muted-foreground">
-                  {size} / {PLANET_SIZE.max}
-                </span>
-              </div>
-              <Slider
-                id="planet-size"
-                min={PLANET_SIZE.min}
-                max={PLANET_SIZE.max}
-                step={PLANET_SIZE.step}
-                value={[field.value ?? PLANET_SIZE.min]}
-                onValueChange={([next]) => field.onChange(next)}
-                onBlur={field.onBlur}
-                aria-invalid={fieldState.invalid}
-              />
-              <FieldDescription>
-                1 is a small moon-like body, 10 is a gas giant.
-              </FieldDescription>
-              <FieldError errors={[fieldState.error]} />
-            </Field>
-          )}
+          type="range"
+          min={PLANET_SIZE.min}
+          max={PLANET_SIZE.max}
+          step={PLANET_SIZE.step}
+          value={size}
+          onChange={(event) => setSize(event.target.valueAsNumber)}
         />
+        <FieldHint>1 is a small moon-like body, 10 is a gas giant.</FieldHint>
+      </Field>
 
-        <Controller
-          control={form.control}
-          name="characteristics"
-          render={({ field, fieldState }) => (
-            <Field data-invalid={fieldState.invalid}>
-              <FieldLabel>Planetary Characteristics</FieldLabel>
-              <CharacteristicPicker
-                value={field.value ?? []}
-                onChange={field.onChange}
-                invalid={fieldState.invalid}
-              />
-              <FieldDescription>
-                Combine traits to shape the planet&apos;s appearance.
-              </FieldDescription>
-              <FieldError errors={[fieldState.error]} />
-            </Field>
-          )}
+      <Field>
+        <FieldLabel>Planetary Characteristics</FieldLabel>
+        <CharacteristicPicker
+          value={characteristics}
+          onChange={setCharacteristics}
         />
-      </FieldGroup>
+        <FieldHint>
+          Combine traits to shape the planet&apos;s appearance.
+        </FieldHint>
+      </Field>
 
       <div className="flex justify-end gap-2">
-        <Button type="button" variant="ghost" onClick={onCancel}>
+        <Button variant="ghost" onClick={onCancel}>
           Cancel
         </Button>
-        <Button type="submit" disabled={form.formState.isSubmitting}>
-          Save Planet
-        </Button>
+        <Button type="submit">Save Planet</Button>
       </div>
     </form>
   );
