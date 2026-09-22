@@ -4,9 +4,12 @@
 
 - Local only, no network access or external services should be used
 
+## Form Validation
+
+- Use Zod for input validation with Zod schema defined near top of form component file (or in separate file)
+
 ## Technology
 
-- Zod for form validation
 - Tailwind CSS only for styling, no component library. Shared primitives (button, modal, form fields) live in `src/modules/shared/components` and wrap native HTML elements
 - React Three Fiber/Drei/Rapier for 3D solar system canvas and physics
 - Zustand for state management
