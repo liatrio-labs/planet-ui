@@ -68,11 +68,51 @@ describe("PlanetForm", () => {
     });
   });
 
-  it("submits NaN distance when the distance field is left blank", async () => {
+  it("blocks submission and shows errors when required fields are missing", async () => {
     const { user, onSubmit } = setup();
     await user.click(screen.getByRole("button", { name: "Save Planet" }));
-    expect(onSubmit).toHaveBeenCalledTimes(1);
-    expect(onSubmit.mock.calls[0][0].distanceAu).toBeNaN();
+
+    expect(onSubmit).not.toHaveBeenCalled();
+    expect(screen.getByText("Name is required.")).toBeInTheDocument();
+    expect(screen.getByText("Distance is required.")).toBeInTheDocument();
+  });
+
+  it("blocks submission when the distance is outside the allowed range", async () => {
+    const { user, onSubmit } = setup();
+    await user.type(screen.getByLabelText("Name"), "Kepler");
+    await user.type(screen.getByLabelText("Distance from Sun (AU)"), "42");
+
+    await user.click(screen.getByRole("button", { name: "Save Planet" }));
+
+    expect(onSubmit).not.toHaveBeenCalled();
+    expect(
+      screen.getByText("Enter a distance between 0.1 and 10 AU."),
+    ).toBeInTheDocument();
+  });
+
+  it("clears a field's error as soon as it is corrected", async () => {
+    const { user } = setup();
+    await user.click(screen.getByRole("button", { name: "Save Planet" }));
+    expect(screen.getByText("Name is required.")).toBeInTheDocument();
+
+    await user.type(screen.getByLabelText("Name"), "Kepler");
+    expect(screen.queryByText("Name is required.")).not.toBeInTheDocument();
+  });
+
+  it("trims whitespace from name and description before submitting", async () => {
+    const { user, onSubmit } = setup();
+    await user.type(screen.getByLabelText("Name"), "  Kepler  ");
+    await user.type(
+      screen.getByLabelText("Description"),
+      "  Ocean world  ",
+    );
+    await user.type(screen.getByLabelText("Distance from Sun (AU)"), "1.5");
+
+    await user.click(screen.getByRole("button", { name: "Save Planet" }));
+
+    expect(onSubmit).toHaveBeenCalledWith(
+      expect.objectContaining({ name: "Kepler", description: "Ocean world" }),
+    );
   });
 
   it("calls onCancel without submitting when Cancel is clicked", async () => {

@@ -11,8 +11,15 @@ export const FieldLabel = (props: ComponentProps<"label">) => (
   <label className="text-sm font-medium leading-none" {...props} />
 );
 
-export const FieldHint = ({ children }: { children: ReactNode }) => (
-  <p className="text-xs text-ink-muted">{children}</p>
+export const FieldHint = ({
+  className = "",
+  ...props
+}: ComponentProps<"p">) => (
+  <p className={`text-xs text-ink-muted ${className}`} {...props} />
+);
+
+export const FieldError = (props: ComponentProps<"p">) => (
+  <p role="alert" className="text-xs text-red-400" {...props} />
 );
 
 const control =
