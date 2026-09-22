@@ -4,6 +4,7 @@ import { Button } from "~/modules/shared/components/ui/button";
 import {
   Field,
   FieldDescription,
+  FieldError,
   FieldGroup,
   FieldLabel,
 } from "~/modules/shared/components/ui/field";
@@ -27,7 +28,12 @@ type PlanetFormProps = {
 export const PlanetForm = ({ onSubmit, onCancel }: PlanetFormProps) => {
   const form = useForm<PlanetValues>({
     defaultValues: defaultPlanetFormValues,
+    mode: "onBlur",
   });
+
+  const {
+    formState: { errors },
+  } = form;
 
   const distanceAu = form.watch("distanceAu");
   const size = form.watch("size") ?? PLANET_SIZE.min;
@@ -42,8 +48,15 @@ export const PlanetForm = ({ onSubmit, onCancel }: PlanetFormProps) => {
         <Controller
           control={form.control}
           name="name"
+          rules={{
+            required: "Name is required.",
+            maxLength: {
+              value: 40,
+              message: "Name must be 40 characters or fewer.",
+            },
+          }}
           render={({ field }) => (
-            <Field>
+            <Field data-invalid={!!errors.name}>
               <FieldLabel htmlFor="planet-name">Name</FieldLabel>
               <Input
                 {...field}
@@ -51,7 +64,9 @@ export const PlanetForm = ({ onSubmit, onCancel }: PlanetFormProps) => {
                 placeholder="Kepler-442b"
                 autoComplete="off"
                 autoFocus
+                aria-invalid={!!errors.name}
               />
+              <FieldError errors={[errors.name]} />
             </Field>
           )}
         />
@@ -59,15 +74,23 @@ export const PlanetForm = ({ onSubmit, onCancel }: PlanetFormProps) => {
         <Controller
           control={form.control}
           name="description"
+          rules={{
+            maxLength: {
+              value: 300,
+              message: "Description must be 300 characters or fewer.",
+            },
+          }}
           render={({ field }) => (
-            <Field>
+            <Field data-invalid={!!errors.description}>
               <FieldLabel htmlFor="planet-description">Description</FieldLabel>
               <Textarea
                 {...field}
                 id="planet-description"
                 placeholder="A tidally locked world with a single vast ocean."
                 rows={3}
+                aria-invalid={!!errors.description}
               />
+              <FieldError errors={[errors.description]} />
             </Field>
           )}
         />
@@ -75,8 +98,19 @@ export const PlanetForm = ({ onSubmit, onCancel }: PlanetFormProps) => {
         <Controller
           control={form.control}
           name="distanceAu"
+          rules={{
+            required: "Distance is required.",
+            min: {
+              value: PLANET_DISTANCE_AU.min,
+              message: `Distance must be at least ${PLANET_DISTANCE_AU.min} AU.`,
+            },
+            max: {
+              value: PLANET_DISTANCE_AU.max,
+              message: `Distance must be at most ${PLANET_DISTANCE_AU.max} AU.`,
+            },
+          }}
           render={({ field }) => (
-            <Field>
+            <Field data-invalid={!!errors.distanceAu}>
               <FieldLabel htmlFor="planet-distance">
                 Distance from Sun (AU)
               </FieldLabel>
@@ -92,11 +126,13 @@ export const PlanetForm = ({ onSubmit, onCancel }: PlanetFormProps) => {
                 ref={field.ref}
                 onBlur={field.onBlur}
                 value={field.value ?? ""}
+                aria-invalid={!!errors.distanceAu}
                 onChange={(event) => {
                   const next = event.target.valueAsNumber;
                   field.onChange(Number.isNaN(next) ? undefined : next);
                 }}
               />
+              <FieldError errors={[errors.distanceAu]} />
               <FieldDescription>
                 {typeof distanceAu === "number" && !Number.isNaN(distanceAu)
                   ? `About ${formatAuAsKm(distanceAu)}.`
