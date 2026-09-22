@@ -68,11 +68,12 @@ describe("PlanetForm", () => {
     });
   });
 
-  it("submits NaN distance when the distance field is left blank", async () => {
+  it("blocks submission and shows errors when required fields are left blank", async () => {
     const { user, onSubmit } = setup();
     await user.click(screen.getByRole("button", { name: "Save Planet" }));
-    expect(onSubmit).toHaveBeenCalledTimes(1);
-    expect(onSubmit.mock.calls[0][0].distanceAu).toBeNaN();
+    expect(onSubmit).not.toHaveBeenCalled();
+    expect(screen.getByText("Name is required")).toBeInTheDocument();
+    expect(screen.getByText("Enter a distance")).toBeInTheDocument();
   });
 
   it("calls onCancel without submitting when Cancel is clicked", async () => {

@@ -3,13 +3,14 @@ import { useState, type FormEvent } from "react";
 import { Button } from "~/modules/shared/components/button";
 import {
   Field,
+  FieldError,
   FieldHint,
   FieldLabel,
   Input,
   Textarea,
 } from "~/modules/shared/components/field";
 import { formatAuAsKm } from "~/modules/shared/lib/format";
-import { PLANET_SIZE, type PlanetValues } from "../models/planet";
+import { PLANET_SIZE, planetSchema, type PlanetValues } from "../models/planet";
 import type { PlanetCharacteristic } from "../models/planet-characteristic";
 import { CharacteristicPicker } from "./characteristic-picker";
 
@@ -17,6 +18,8 @@ type PlanetFormProps = {
   onSubmit: (values: PlanetValues) => void;
   onCancel: () => void;
 };
+
+type FieldErrors = Partial<Record<keyof PlanetValues, string>>;
 
 export const PlanetForm = ({ onSubmit, onCancel }: PlanetFormProps) => {
   // Each input is a plain controlled component: React state holds the value
@@ -29,19 +32,36 @@ export const PlanetForm = ({ onSubmit, onCancel }: PlanetFormProps) => {
   const [characteristics, setCharacteristics] = useState<
     PlanetCharacteristic[]
   >([]);
+  const [errors, setErrors] = useState<FieldErrors>({});
 
   const parsedDistance = Number.parseFloat(distanceAu);
   const hasDistance = !Number.isNaN(parsedDistance);
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    onSubmit({
+
+    const result = planetSchema.safeParse({
       name,
       description,
       distanceAu: parsedDistance,
       size,
       characteristics,
     });
+
+    if (!result.success) {
+      const fieldErrors: FieldErrors = {};
+      for (const issue of result.error.issues) {
+        const field = issue.path[0] as keyof PlanetValues;
+        if (!fieldErrors[field]) {
+          fieldErrors[field] = issue.message;
+        }
+      }
+      setErrors(fieldErrors);
+      return;
+    }
+
+    setErrors({});
+    onSubmit(result.data);
   };
 
   return (
@@ -57,6 +77,7 @@ export const PlanetForm = ({ onSubmit, onCancel }: PlanetFormProps) => {
           value={name}
           onChange={(event) => setName(event.target.value)}
         />
+        {errors.name ? <FieldError>{errors.name}</FieldError> : null}
       </Field>
 
       <Field>
@@ -69,6 +90,9 @@ export const PlanetForm = ({ onSubmit, onCancel }: PlanetFormProps) => {
           value={description}
           onChange={(event) => setDescription(event.target.value)}
         />
+        {errors.description ? (
+          <FieldError>{errors.description}</FieldError>
+        ) : null}
       </Field>
 
       <Field>
@@ -87,6 +111,9 @@ export const PlanetForm = ({ onSubmit, onCancel }: PlanetFormProps) => {
             ? `About ${formatAuAsKm(parsedDistance)}.`
             : "1 AU is Earth's distance from the sun. Enter 0.1 to 10."}
         </FieldHint>
+        {errors.distanceAu ? (
+          <FieldError>{errors.distanceAu}</FieldError>
+        ) : null}
       </Field>
 
       <Field>
