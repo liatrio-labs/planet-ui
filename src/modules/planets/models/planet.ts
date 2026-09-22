@@ -15,12 +15,3 @@ export type PlanetValues = {
 };
 
 export type Planet = Entity & PlanetValues;
-
-export const defaultPlanetFormValues: PlanetValues = {
-  name: "",
-  description: "",
-  // Intentionally empty so the number input starts blank.
-  distanceAu: undefined as unknown as number,
-  size: 4,
-  characteristics: [],
-};
