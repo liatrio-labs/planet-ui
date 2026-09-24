@@ -9,8 +9,8 @@ Task: Add input validation to the Planet form
 
 Scope: Only the planet form input fields.
 
-Context: Validation does not yet exist and we would like to use Zod for all input validation.
-Check CONTRIBUTING.md for how we handle validation errors.
+Context: Validation does not yet exist for this form. Check CONTRIBUTING.md
+for our form validation conventions.
 
 Checkpoints: Before writing any code, show me a short plan listing
 the fields you'll validate and the rules for each. Wait for my OK.
