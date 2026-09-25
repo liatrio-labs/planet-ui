@@ -3,19 +3,29 @@ import { useState, type FormEvent } from "react";
 import { Button } from "~/modules/shared/components/button";
 import {
   Field,
+  FieldError,
   FieldHint,
   FieldLabel,
   Input,
   Textarea,
 } from "~/modules/shared/components/field";
 import { formatAuAsKm } from "~/modules/shared/lib/format";
-import { PLANET_SIZE, type PlanetValues } from "../models/planet";
+import {
+  PLANET_DISTANCE_AU,
+  PLANET_SIZE,
+  type PlanetValues,
+} from "../models/planet";
 import type { PlanetCharacteristic } from "../models/planet-characteristic";
 import { CharacteristicPicker } from "./characteristic-picker";
 
 type PlanetFormProps = {
   onSubmit: (values: PlanetValues) => void;
   onCancel: () => void;
+};
+
+type PlanetFormErrors = {
+  name?: string;
+  distanceAu?: string;
 };
 
 export const PlanetForm = ({ onSubmit, onCancel }: PlanetFormProps) => {
@@ -29,15 +39,42 @@ export const PlanetForm = ({ onSubmit, onCancel }: PlanetFormProps) => {
   const [characteristics, setCharacteristics] = useState<
     PlanetCharacteristic[]
   >([]);
+  const [errors, setErrors] = useState<PlanetFormErrors>({});
 
   const parsedDistance = Number.parseFloat(distanceAu);
   const hasDistance = !Number.isNaN(parsedDistance);
 
+  const validate = (): PlanetFormErrors => {
+    const nextErrors: PlanetFormErrors = {};
+
+    if (name.trim() === "") {
+      nextErrors.name = "Name is required.";
+    }
+
+    if (!hasDistance) {
+      nextErrors.distanceAu = "Distance is required.";
+    } else if (
+      parsedDistance < PLANET_DISTANCE_AU.min ||
+      parsedDistance > PLANET_DISTANCE_AU.max
+    ) {
+      nextErrors.distanceAu = `Enter a distance between ${PLANET_DISTANCE_AU.min} and ${PLANET_DISTANCE_AU.max} AU.`;
+    }
+
+    return nextErrors;
+  };
+
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    const nextErrors = validate();
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) {
+      return;
+    }
+
     onSubmit({
-      name,
-      description,
+      name: name.trim(),
+      description: description.trim(),
       distanceAu: parsedDistance,
       size,
       characteristics,
@@ -45,7 +82,7 @@ export const PlanetForm = ({ onSubmit, onCancel }: PlanetFormProps) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-6" noValidate>
       <Field>
         <FieldLabel htmlFor="planet-name">Name</FieldLabel>
         <Input
@@ -55,8 +92,18 @@ export const PlanetForm = ({ onSubmit, onCancel }: PlanetFormProps) => {
           autoComplete="off"
           autoFocus
           value={name}
-          onChange={(event) => setName(event.target.value)}
+          onChange={(event) => {
+            setName(event.target.value);
+            if (errors.name) {
+              setErrors((current) => ({ ...current, name: undefined }));
+            }
+          }}
+          aria-invalid={Boolean(errors.name)}
+          aria-describedby={errors.name ? "planet-name-error" : undefined}
         />
+        {errors.name ? (
+          <FieldError id="planet-name-error">{errors.name}</FieldError>
+        ) : null}
       </Field>
 
       <Field>
@@ -79,14 +126,32 @@ export const PlanetForm = ({ onSubmit, onCancel }: PlanetFormProps) => {
           type="number"
           inputMode="decimal"
           placeholder="1.0"
+          min={PLANET_DISTANCE_AU.min}
+          max={PLANET_DISTANCE_AU.max}
+          step={PLANET_DISTANCE_AU.step}
           value={distanceAu}
-          onChange={(event) => setDistanceAu(event.target.value)}
+          onChange={(event) => {
+            setDistanceAu(event.target.value);
+            if (errors.distanceAu) {
+              setErrors((current) => ({ ...current, distanceAu: undefined }));
+            }
+          }}
+          aria-invalid={Boolean(errors.distanceAu)}
+          aria-describedby={
+            errors.distanceAu ? "planet-distance-error" : "planet-distance-hint"
+          }
         />
-        <FieldHint>
-          {hasDistance
-            ? `About ${formatAuAsKm(parsedDistance)}.`
-            : "1 AU is Earth's distance from the sun. Enter 0.1 to 10."}
-        </FieldHint>
+        {errors.distanceAu ? (
+          <FieldError id="planet-distance-error">
+            {errors.distanceAu}
+          </FieldError>
+        ) : (
+          <FieldHint id="planet-distance-hint">
+            {hasDistance
+              ? `About ${formatAuAsKm(parsedDistance)}.`
+              : "1 AU is Earth's distance from the sun. Enter 0.1 to 10."}
+          </FieldHint>
+        )}
       </Field>
 
       <Field>
