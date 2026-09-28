@@ -12,6 +12,7 @@ const planet: Planet = {
   description: "A tidally locked world.",
   distanceAu: 1.5,
   size: 6,
+  eccentricity: 0,
   characteristics: ["oceans", "ringed"],
 };
 
@@ -37,6 +38,17 @@ describe("PlanetListItem", () => {
     renderItem();
     expect(
       screen.getByText("1.5 AU · 224,396,806 km · size 6"),
+    ).toBeInTheDocument();
+  });
+
+  it("omits eccentricity for circular orbits and shows it otherwise", () => {
+    const { unmount } = renderItem();
+    expect(screen.queryByText(/· e /)).not.toBeInTheDocument();
+    unmount();
+
+    renderItem({ eccentricity: 0.45 });
+    expect(
+      screen.getByText("1.5 AU · 224,396,806 km · size 6 · e 0.45"),
     ).toBeInTheDocument();
   });
 

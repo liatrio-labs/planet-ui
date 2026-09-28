@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-import { PLANET_SIZE } from "../models/planet";
+import { PLANET_ECCENTRICITY, PLANET_SIZE } from "../models/planet";
 import { PlanetForm } from "./planet-form";
 
 const setup = () => {
@@ -19,6 +19,9 @@ describe("PlanetForm", () => {
     expect(screen.getByLabelText("Distance from Sun (AU)")).toHaveValue(null);
     expect(screen.getByLabelText("Size")).toHaveValue("4");
     expect(screen.getByText(`4 / ${PLANET_SIZE.max}`)).toBeInTheDocument();
+    expect(screen.getByLabelText("Orbit Shape")).toHaveValue("0");
+    expect(screen.getByText("0.00")).toBeInTheDocument();
+    expect(screen.getByText("A perfect circle.")).toBeInTheDocument();
     expect(screen.getByRole("group")).toBeInTheDocument();
   });
 
@@ -46,6 +49,27 @@ describe("PlanetForm", () => {
     expect(slider).toHaveAttribute("step", String(PLANET_SIZE.step));
   });
 
+  it("constrains the eccentricity slider to PLANET_ECCENTRICITY bounds", () => {
+    setup();
+    const slider = screen.getByLabelText("Orbit Shape");
+    expect(slider).toHaveAttribute("min", String(PLANET_ECCENTRICITY.min));
+    expect(slider).toHaveAttribute("max", String(PLANET_ECCENTRICITY.max));
+    expect(slider).toHaveAttribute("step", String(PLANET_ECCENTRICITY.step));
+  });
+
+  it("reports the periapsis and apoapsis once distance and eccentricity are set", async () => {
+    const { user } = setup();
+    await user.type(screen.getByLabelText("Distance from Sun (AU)"), "1");
+    fireEvent.change(screen.getByLabelText("Orbit Shape"), {
+      target: { value: "0.3" },
+    });
+
+    expect(screen.getByText("0.30")).toBeInTheDocument();
+    expect(
+      screen.getByText("Ranges from 0.7 AU to 1.3 AU."),
+    ).toBeInTheDocument();
+  });
+
   it("submits the collected values", async () => {
     const { user, onSubmit } = setup();
 
@@ -53,6 +77,9 @@ describe("PlanetForm", () => {
     await user.type(screen.getByLabelText("Description"), "Ocean world");
     await user.type(screen.getByLabelText("Distance from Sun (AU)"), "1.5");
     fireEvent.change(screen.getByLabelText("Size"), { target: { value: "7" } });
+    fireEvent.change(screen.getByLabelText("Orbit Shape"), {
+      target: { value: "0.25" },
+    });
     await user.click(screen.getByRole("button", { name: "Oceans" }));
     await user.click(screen.getByRole("button", { name: "Ringed" }));
 
@@ -64,6 +91,7 @@ describe("PlanetForm", () => {
       description: "Ocean world",
       distanceAu: 1.5,
       size: 7,
+      eccentricity: 0.25,
       characteristics: ["oceans", "ringed"],
     });
   });

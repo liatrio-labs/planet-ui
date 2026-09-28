@@ -3,12 +3,12 @@ import { forwardRef, useImperativeHandle, type ReactNode } from "react";
 import type { Mesh, MeshStandardMaterial, SphereGeometry } from "three";
 
 import {
-  auToSceneDistance,
   circularOrbitSpeed,
   GRAVITATIONAL_PARAMETER,
   minOrbitRadius,
+  periapsisSpeed,
+  resolveOrbit,
   sizeToRadius,
-  startAngleFromId,
 } from "~/modules/planets/lib/orbit";
 import { derivePlanetAppearance } from "~/modules/planets/lib/planet-appearance";
 import type { Planet } from "~/modules/planets/models/planet";
@@ -64,6 +64,7 @@ const basePlanet: Planet = {
   description: "",
   distanceAu: 1,
   size: 5,
+  eccentricity: 0,
   characteristics: ["rocky"],
 };
 
@@ -92,13 +93,8 @@ describe("PlanetBody", () => {
   it("seeds a dynamic, undamped rigid body on a circular orbit", async () => {
     await create();
 
-    const radius = sizeToRadius(basePlanet.size);
-    const orbitRadius = Math.max(
-      auToSceneDistance(basePlanet.distanceAu),
-      minOrbitRadius(radius),
-    );
-    const angle = startAngleFromId(basePlanet.id);
-    const speed = circularOrbitSpeed(orbitRadius);
+    const orbit = resolveOrbit(basePlanet);
+    const speed = circularOrbitSpeed(orbit.semiMajorAxis);
 
     expect(rigidBodyProps).toHaveBeenCalledTimes(1);
     const props = rigidBodyProps.mock.calls[0][0];
@@ -111,18 +107,38 @@ describe("PlanetBody", () => {
     });
 
     const [px, py, pz] = props.position;
-    expect(px).toBeCloseTo(Math.cos(angle) * orbitRadius);
+    expect([px, py, pz]).toEqual(orbit.periapsisPosition);
     expect(py).toBe(0);
-    expect(pz).toBeCloseTo(Math.sin(angle) * orbitRadius);
+    expect(Math.hypot(px, pz)).toBeCloseTo(orbit.semiMajorAxis);
 
     const [vx, vy, vz] = props.linearVelocity;
-    expect(vx).toBeCloseTo(Math.sin(angle) * speed);
+    expect([vx, vy, vz]).toEqual(orbit.periapsisVelocity);
     expect(vy).toBe(0);
-    expect(vz).toBeCloseTo(-Math.cos(angle) * speed);
 
     // Velocity is tangent to the orbit: perpendicular to the position vector.
     expect(px * vx + pz * vz).toBeCloseTo(0);
     expect(Math.hypot(vx, vz)).toBeCloseTo(speed);
+  });
+
+  it("seeds an eccentric planet at periapsis, moving faster than a circle", async () => {
+    const eccentricity = 0.6;
+    await create({ eccentricity });
+
+    const orbit = resolveOrbit({ ...basePlanet, eccentricity });
+    const props = rigidBodyProps.mock.calls[0][0];
+
+    const [px, , pz] = props.position;
+    expect(Math.hypot(px, pz)).toBeCloseTo(
+      orbit.semiMajorAxis * (1 - eccentricity),
+    );
+
+    const [vx, , vz] = props.linearVelocity;
+    expect(Math.hypot(vx, vz)).toBeCloseTo(
+      periapsisSpeed(orbit.semiMajorAxis, eccentricity),
+    );
+    expect(Math.hypot(vx, vz)).toBeGreaterThan(
+      circularOrbitSpeed(orbit.semiMajorAxis),
+    );
   });
 
   it("spins faster for larger planets", async () => {

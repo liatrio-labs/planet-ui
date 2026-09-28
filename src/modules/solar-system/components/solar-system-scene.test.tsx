@@ -2,18 +2,14 @@ import ReactThreeTestRenderer from "@react-three/test-renderer";
 import type { ReactNode } from "react";
 import type { AmbientLight } from "three";
 
-import {
-  auToSceneDistance,
-  minOrbitRadius,
-  sizeToRadius,
-} from "~/modules/planets/lib/orbit";
+import { resolveOrbit } from "~/modules/planets/lib/orbit";
 import type { Planet } from "~/modules/planets/models/planet";
 import { usePlanetsStore } from "~/modules/planets/store/planets.store";
 import { SolarSystemScene } from "./solar-system-scene";
 
 const physicsProps = vi.fn();
 const orbitControlsProps = vi.fn();
-const orbitRingProps = vi.fn();
+const orbitPathProps = vi.fn();
 const planetBodyProps = vi.fn();
 
 vi.mock("@react-three/rapier", () => ({
@@ -42,10 +38,15 @@ vi.mock("./sun", () => ({
   Sun: () => <group name="sun" />,
 }));
 
-vi.mock("./orbit-ring", () => ({
-  OrbitRing: (props: { radius: number }) => {
-    orbitRingProps(props);
-    return <group name="orbit-ring" />;
+vi.mock("./orbit-path", () => ({
+  OrbitPath: (props: {
+    semiMajorAxis: number;
+    semiMinorAxis: number;
+    rotation: number;
+    center: [number, number, number];
+  }) => {
+    orbitPathProps(props);
+    return <group name="orbit-path" />;
   },
 }));
 
@@ -56,13 +57,19 @@ vi.mock("./planet-body", () => ({
   },
 }));
 
-const makePlanet = (id: string, distanceAu: number, size: number): Planet => ({
+const makePlanet = (
+  id: string,
+  distanceAu: number,
+  size: number,
+  eccentricity = 0,
+): Planet => ({
   id,
   createdAt: 0,
   name: id,
   description: "",
   distanceAu,
   size,
+  eccentricity,
   characteristics: [],
 });
 
@@ -76,7 +83,7 @@ describe("SolarSystemScene", () => {
     usePlanetsStore.setState({ planets: [], focusedBodyId: null });
     physicsProps.mockClear();
     orbitControlsProps.mockClear();
-    orbitRingProps.mockClear();
+    orbitPathProps.mockClear();
     planetBodyProps.mockClear();
   });
 
@@ -114,21 +121,21 @@ describe("SolarSystemScene", () => {
 
   it("renders nothing planet-related when the store is empty", async () => {
     const renderer = await ReactThreeTestRenderer.create(<SolarSystemScene />);
-    expect(findNamed(renderer, "orbit-ring")).toHaveLength(0);
+    expect(findNamed(renderer, "orbit-path")).toHaveLength(0);
     expect(findNamed(renderer, "planet-body")).toHaveLength(0);
   });
 
-  it("renders one orbit ring and one body per planet, bodies inside physics", async () => {
+  it("renders one orbit path and one body per planet, bodies inside physics", async () => {
     const planets = [makePlanet("a", 1, 3), makePlanet("b", 4, 8)];
     usePlanetsStore.setState({ planets });
     const renderer = await ReactThreeTestRenderer.create(<SolarSystemScene />);
 
-    expect(findNamed(renderer, "orbit-ring")).toHaveLength(2);
+    expect(findNamed(renderer, "orbit-path")).toHaveLength(2);
     expect(findNamed(renderer, "planet-body")).toHaveLength(2);
 
     const physics = findNamed(renderer, "physics")[0];
     expect(physics.findAll((node) => node.instance.name === "planet-body")).toHaveLength(2);
-    expect(physics.findAll((node) => node.instance.name === "orbit-ring")).toHaveLength(0);
+    expect(physics.findAll((node) => node.instance.name === "orbit-path")).toHaveLength(0);
 
     // The mock may be invoked more than once per planet across React renders,
     // so compare the distinct planets that were handed to it.
@@ -138,15 +145,26 @@ describe("SolarSystemScene", () => {
     expect([...seen.values()]).toEqual(planets);
   });
 
-  it("matches each orbit ring radius to the body's actual orbit", async () => {
-    usePlanetsStore.setState({
-      planets: [makePlanet("far", 4, 2), makePlanet("near", 0.0001, 10)],
-    });
+  it("draws each orbit path from the same resolved orbit as the body", async () => {
+    const planets = [
+      makePlanet("far", 4, 2),
+      makePlanet("near", 0.0001, 10),
+      makePlanet("eccentric", 3, 4, 0.6),
+    ];
+    usePlanetsStore.setState({ planets });
     await ReactThreeTestRenderer.create(<SolarSystemScene />);
 
-    const radii = orbitRingProps.mock.calls.map((call) => call[0].radius);
-    expect(radii[0]).toBeCloseTo(auToSceneDistance(4));
-    // Too close to the sun: clamped to the minimum safe orbit.
-    expect(radii[1]).toBeCloseTo(minOrbitRadius(sizeToRadius(10)));
+    // The mock may be invoked more than once per planet across React renders,
+    // so compare the distinct prop sets it was handed.
+    const seen = orbitPathProps.mock.calls.map((call) => call[0]);
+    for (const planet of planets) {
+      const orbit = resolveOrbit(planet);
+      expect(seen).toContainEqual({
+        semiMajorAxis: orbit.semiMajorAxis,
+        semiMinorAxis: orbit.semiMinorAxis,
+        rotation: orbit.argumentOfPeriapsis,
+        center: orbit.center,
+      });
+    }
   });
 });

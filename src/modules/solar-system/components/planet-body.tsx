@@ -7,12 +7,9 @@ import {
 import { useEffect, useMemo, useRef } from "react";
 
 import {
-  circularOrbitSpeed,
   GRAVITATIONAL_PARAMETER,
-  auToSceneDistance,
-  minOrbitRadius,
+  resolveOrbit,
   sizeToRadius,
-  startAngleFromId,
 } from "~/modules/planets/lib/orbit";
 import { derivePlanetAppearance } from "~/modules/planets/lib/planet-appearance";
 import type { Planet } from "~/modules/planets/models/planet";
@@ -26,36 +23,22 @@ type PlanetBodyProps = {
 };
 
 /**
- * A dynamic rigid body seeded with a circular-orbit velocity. Each physics step
- * we apply the sun's gravitational pull (a = mu / r^2) so the orbit emerges from
- * the simulation rather than from a scripted path.
+ * A dynamic rigid body seeded at periapsis with its vis-viva velocity. Each
+ * physics step we apply the sun's gravitational pull (a = mu / r^2) so the
+ * orbit - circular or elliptical - emerges from the simulation rather than
+ * from a scripted path.
  */
 export const PlanetBody = ({ planet }: PlanetBodyProps) => {
   const bodyRef = useRef<RapierRigidBody>(null);
 
   const { radius, position, linearVelocity, angularVelocity, appearance } =
     useMemo(() => {
-      const planetRadius = sizeToRadius(planet.size);
-      const orbitRadius = Math.max(
-        auToSceneDistance(planet.distanceAu),
-        minOrbitRadius(planetRadius),
-      );
-      const angle = startAngleFromId(planet.id);
-      const speed = circularOrbitSpeed(orbitRadius);
+      const { periapsisPosition, periapsisVelocity } = resolveOrbit(planet);
 
       return {
-        radius: planetRadius,
-        position: [
-          Math.cos(angle) * orbitRadius,
-          0,
-          Math.sin(angle) * orbitRadius,
-        ] as [number, number, number],
-        // Tangent to the orbit (counter-clockwise when viewed from above).
-        linearVelocity: [
-          Math.sin(angle) * speed,
-          0,
-          -Math.cos(angle) * speed,
-        ] as [number, number, number],
+        radius: sizeToRadius(planet.size),
+        position: periapsisPosition,
+        linearVelocity: periapsisVelocity,
         angularVelocity: [0, 0.4 + planet.size * 0.05, 0] as [
           number,
           number,
