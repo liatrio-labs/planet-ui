@@ -5,6 +5,7 @@ const values = {
   description: "",
   distanceAu: 1,
   size: 1,
+  eccentricity: 0,
   characteristics: [],
 };
 

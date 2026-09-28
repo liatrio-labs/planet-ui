@@ -45,6 +45,7 @@ export const PlanetListItem = ({
             <p className="text-xs text-ink-muted">
               {formatAu(planet.distanceAu)} · {formatAuAsKm(planet.distanceAu)} · size{" "}
               {planet.size}
+              {planet.eccentricity > 0 && ` · e ${planet.eccentricity.toFixed(2)}`}
             </p>
             {planet.description && (
               <p className="mt-1.5 line-clamp-2 text-sm text-ink-muted">

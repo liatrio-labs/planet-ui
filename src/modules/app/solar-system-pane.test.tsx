@@ -12,6 +12,7 @@ const makePlanet = (id: string): Planet => ({
   description: "",
   distanceAu: 1,
   size: 2,
+  eccentricity: 0,
   characteristics: [],
 });
 
@@ -67,6 +68,7 @@ describe("SolarSystemPane", () => {
         description: "",
         distanceAu: 1,
         size: 1,
+        eccentricity: 0,
         characteristics: [],
       });
     });

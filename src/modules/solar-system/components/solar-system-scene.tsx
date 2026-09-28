@@ -1,14 +1,10 @@
 import { OrbitControls } from "@react-three/drei";
 import { Physics } from "@react-three/rapier";
 
-import {
-  auToSceneDistance,
-  minOrbitRadius,
-  sizeToRadius,
-} from "~/modules/planets/lib/orbit";
+import { resolveOrbit } from "~/modules/planets/lib/orbit";
 import { usePlanetsStore } from "~/modules/planets/store/planets.store";
 import { CameraFocus } from "./camera-focus";
-import { OrbitRing } from "./orbit-ring";
+import { OrbitPath } from "./orbit-path";
 import { PlanetBody } from "./planet-body";
 import { SpaceBackground } from "./space-background";
 import { Sun } from "./sun";
@@ -21,15 +17,18 @@ export const SolarSystemScene = () => {
       <SpaceBackground />
       <ambientLight intensity={0.35} />
 
-      {planets.map((planet) => (
-        <OrbitRing
-          key={`orbit-${planet.id}`}
-          radius={Math.max(
-            auToSceneDistance(planet.distanceAu),
-            minOrbitRadius(sizeToRadius(planet.size)),
-          )}
-        />
-      ))}
+      {planets.map((planet) => {
+        const orbit = resolveOrbit(planet);
+        return (
+          <OrbitPath
+            key={`orbit-${planet.id}`}
+            semiMajorAxis={orbit.semiMajorAxis}
+            semiMinorAxis={orbit.semiMinorAxis}
+            rotation={orbit.argumentOfPeriapsis}
+            center={orbit.center}
+          />
+        );
+      })}
 
       <Physics gravity={[0, 0, 0]}>
         <Sun />

@@ -12,6 +12,7 @@ const makePlanet = (id: string, name: string): Planet => ({
   description: "",
   distanceAu: 1,
   size: 3,
+  eccentricity: 0,
   characteristics: [],
 });
 

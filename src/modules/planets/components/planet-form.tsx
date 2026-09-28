@@ -8,8 +8,12 @@ import {
   Input,
   Textarea,
 } from "~/modules/shared/components/field";
-import { formatAuAsKm } from "~/modules/shared/lib/format";
-import { PLANET_SIZE, type PlanetValues } from "../models/planet";
+import { formatAu, formatAuAsKm } from "~/modules/shared/lib/format";
+import {
+  PLANET_ECCENTRICITY,
+  PLANET_SIZE,
+  type PlanetValues,
+} from "../models/planet";
 import type { PlanetCharacteristic } from "../models/planet-characteristic";
 import { CharacteristicPicker } from "./characteristic-picker";
 
@@ -26,6 +30,7 @@ export const PlanetForm = ({ onSubmit, onCancel }: PlanetFormProps) => {
   // Kept as a string so the number input can start (and be cleared to) blank.
   const [distanceAu, setDistanceAu] = useState("");
   const [size, setSize] = useState(4);
+  const [eccentricity, setEccentricity] = useState(0);
   const [characteristics, setCharacteristics] = useState<
     PlanetCharacteristic[]
   >([]);
@@ -40,6 +45,7 @@ export const PlanetForm = ({ onSubmit, onCancel }: PlanetFormProps) => {
       description,
       distanceAu: parsedDistance,
       size,
+      eccentricity,
       characteristics,
     });
   };
@@ -107,6 +113,34 @@ export const PlanetForm = ({ onSubmit, onCancel }: PlanetFormProps) => {
           onChange={(event) => setSize(event.target.valueAsNumber)}
         />
         <FieldHint>1 is a small moon-like body, 10 is a gas giant.</FieldHint>
+      </Field>
+
+      <Field>
+        <div className="flex items-center justify-between">
+          <FieldLabel htmlFor="planet-eccentricity">Orbit Shape</FieldLabel>
+          <span className="text-sm tabular-nums text-ink-muted">
+            {eccentricity.toFixed(2)}
+          </span>
+        </div>
+        <input
+          id="planet-eccentricity"
+          name="eccentricity"
+          type="range"
+          min={PLANET_ECCENTRICITY.min}
+          max={PLANET_ECCENTRICITY.max}
+          step={PLANET_ECCENTRICITY.step}
+          value={eccentricity}
+          onChange={(event) => setEccentricity(event.target.valueAsNumber)}
+        />
+        <FieldHint>
+          {eccentricity === 0
+            ? "A perfect circle."
+            : hasDistance
+              ? `Ranges from ${formatAu(
+                  parsedDistance * (1 - eccentricity),
+                )} to ${formatAu(parsedDistance * (1 + eccentricity))}.`
+              : "A stretched ellipse: the planet speeds up near the sun."}
+        </FieldHint>
       </Field>
 
       <Field>
